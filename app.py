@@ -46,16 +46,12 @@ def render_dashboard(sales: pd.DataFrame) -> None:
     customers = get_unique_customers(filtered_sales)
     average_revenue_per_customer = get_average_revenue_per_customer(filtered_sales)
 
-    (
-        revenue_card,
-        orders_card,
-        ticket_card,
-        customers_card,
-        customer_revenue_card,
-    ) = st.columns(5)
+    revenue_card, orders_card, ticket_card = st.columns(3)
     revenue_card.metric("Receita total", format_brl(revenue))
     orders_card.metric("Pedidos concluídos", f"{orders:,}".replace(",", "."))
     ticket_card.metric("Ticket médio", format_brl(average_ticket))
+
+    customers_card, customer_revenue_card = st.columns(2)
     customers_card.metric("Clientes únicos", f"{customers:,}".replace(",", "."))
     customer_revenue_card.metric(
         "Receita média por cliente", format_brl(average_revenue_per_customer)
