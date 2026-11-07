@@ -83,7 +83,7 @@ def render_dashboard(sales: pd.DataFrame) -> None:
         hovermode="x unified",
         margin={"l": 10, "r": 10, "t": 20, "b": 10},
     )
-    st.plotly_chart(chart, use_container_width=True)
+    st.plotly_chart(chart, width="stretch")
 
 
 def render_chat(sales: pd.DataFrame) -> None:
