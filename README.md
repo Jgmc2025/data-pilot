@@ -6,7 +6,7 @@ Painel de vendas em Python com uma conversa em português apoiada por métricas 
 
 Coloque a planilha original em `data/raw/sales.csv`. A entrada deve ser um CSV separado por vírgulas e conter estas colunas:
 
-`order_id`, `order_date`, `status`, `category`, `quantity`, `unit_price`
+`order_id`, `customer_id`, `order_date`, `status`, `category`, `quantity`, `unit_price`
 
 O script padroniza os nomes e status, converte data e valores numéricos, remove linhas duplicadas e calcula `revenue` como quantidade multiplicada pelo preço unitário. O resultado é salvo em `data/processed/sales_clean.csv`, com `;` como separador e `,` como separador decimal, e então relido com as mesmas configurações.
 
@@ -16,3 +16,7 @@ Instale a dependência e execute na raiz do projeto:
 python -m pip install -r requirements.txt
 python src/prepare_data.py
 ```
+
+## Etapa 2 — Métricas
+
+O módulo `src/metrics.py` calcula receita, pedidos, ticket médio e clientes únicos considerando somente pedidos concluídos. O ticket médio é a receita concluída dividida pela quantidade de pedidos concluídos. A taxa de cancelamento é a proporção de pedidos distintos cancelados sobre todos os pedidos distintos e retorna um valor entre `0` e `1`.

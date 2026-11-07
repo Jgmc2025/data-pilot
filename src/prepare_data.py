@@ -12,6 +12,7 @@ OUTPUT_PATH = ROOT_DIR / "data" / "processed" / "sales_clean.csv"
 
 REQUIRED_COLUMNS = {
     "order_id",
+    "customer_id",
     "order_date",
     "status",
     "category",
@@ -70,7 +71,8 @@ def prepare_sales_data() -> pd.DataFrame:
         missing = ", ".join(sorted(missing_columns))
         raise ValueError(
             "O sales.csv precisa ter as colunas "
-            "order_id, order_date, status, category, quantity e unit_price. "
+            "order_id, customer_id, order_date, status, category, quantity "
+            "e unit_price. "
             f"Colunas ausentes: {missing}."
         )
 
