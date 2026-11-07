@@ -8,6 +8,7 @@ import pandas as pd
 from openai import OpenAI
 
 from src.metrics import (
+    get_average_revenue_per_customer,
     get_average_ticket,
     get_cancellation_rate,
     get_total_orders,
@@ -59,6 +60,17 @@ METRIC_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "get_average_revenue_per_customer",
+            "description": (
+                "Retorna a receita média por cliente: receita dos pedidos concluídos "
+                "dividida pelo número de clientes distintos com pedido concluído."
+            ),
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "get_cancellation_rate",
             "description": (
                 "Retorna a proporção de pedidos distintos cancelados sobre todos os "
@@ -77,6 +89,9 @@ def _tool_functions(sales: pd.DataFrame) -> dict[str, Callable[[], int | float]]
         "get_total_orders": lambda: get_total_orders(sales),
         "get_average_ticket": lambda: get_average_ticket(sales),
         "get_unique_customers": lambda: get_unique_customers(sales),
+        "get_average_revenue_per_customer": lambda: get_average_revenue_per_customer(
+            sales
+        ),
         "get_cancellation_rate": lambda: get_cancellation_rate(sales),
     }
 

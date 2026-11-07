@@ -42,3 +42,7 @@ Copy-Item .env.example .env
 ## Etapa 5 — Ferramentas de métricas
 
 O chat disponibiliza ferramentas para receita, pedidos concluídos, ticket médio, clientes únicos e taxa de cancelamento. O modelo escolhe a ferramenta pela pergunta, mas cada valor é calculado pela função Python correspondente.
+
+## Etapa 6 — Receita média por cliente
+
+Como melhoria, o projeto calcula a receita média por cliente a partir da receita dos pedidos concluídos dividida pela quantidade de clientes distintos com pedido concluído. A métrica aparece no painel e também está disponível como ferramenta no chat.

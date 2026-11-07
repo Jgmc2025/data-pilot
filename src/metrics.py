@@ -70,6 +70,16 @@ def get_unique_customers(sales: pd.DataFrame | None = None) -> int:
     return int(completed["customer_id"].nunique())
 
 
+def get_average_revenue_per_customer(sales: pd.DataFrame | None = None) -> float:
+    """Return completed-order revenue divided by distinct completed-order customers."""
+    completed = _completed_sales(sales)
+    customer_count = completed["customer_id"].nunique()
+    if customer_count == 0:
+        return 0.0
+    revenue = pd.to_numeric(completed["revenue"], errors="coerce").sum()
+    return float(revenue / customer_count)
+
+
 def get_cancellation_rate(sales: pd.DataFrame | None = None) -> float:
     """Return canceled distinct orders divided by all distinct orders."""
     data = _get_sales(sales)

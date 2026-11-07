@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from src.chat import ask_openrouter
 from src.metrics import (
+    get_average_revenue_per_customer,
     get_average_ticket,
     get_total_orders,
     get_total_revenue,
@@ -43,12 +44,22 @@ def render_dashboard(sales: pd.DataFrame) -> None:
     orders = get_total_orders(filtered_sales)
     average_ticket = get_average_ticket(filtered_sales)
     customers = get_unique_customers(filtered_sales)
+    average_revenue_per_customer = get_average_revenue_per_customer(filtered_sales)
 
-    revenue_card, orders_card, ticket_card, customers_card = st.columns(4)
+    (
+        revenue_card,
+        orders_card,
+        ticket_card,
+        customers_card,
+        customer_revenue_card,
+    ) = st.columns(5)
     revenue_card.metric("Receita total", format_brl(revenue))
     orders_card.metric("Pedidos concluídos", f"{orders:,}".replace(",", "."))
     ticket_card.metric("Ticket médio", format_brl(average_ticket))
     customers_card.metric("Clientes únicos", f"{customers:,}".replace(",", "."))
+    customer_revenue_card.metric(
+        "Receita média por cliente", format_brl(average_revenue_per_customer)
+    )
 
     completed_sales = filtered_sales.loc[filtered_sales["status"].eq("concluido")].copy()
     st.subheader("Receita por mês")
