@@ -33,8 +33,12 @@ O painel permite filtrar uma categoria e exibe receita total, pedidos concluído
 
 ## Etapa 4 — Chat com OpenRouter
 
-Copie `.env.example` para `.env`, preencha `OPENROUTER_API_KEY` com sua chave e mantenha `OPENROUTER_MODEL=openrouter/free` para usar o roteador gratuito. O menu **Conversa** envia ao modelo as métricas já calculadas pelo Python; nesta etapa, ainda não há chamada de ferramentas.
+Copie `.env.example` para `.env`, preencha `OPENROUTER_API_KEY` com sua chave e mantenha `OPENROUTER_MODEL=openrouter/free` para usar o roteador gratuito. O menu **Conversa** envia perguntas ao modelo pela API do OpenRouter.
 
 ```powershell
 Copy-Item .env.example .env
 ```
+
+## Etapa 5 — Ferramentas de métricas
+
+O chat disponibiliza ferramentas para receita, pedidos concluídos, ticket médio, clientes únicos e taxa de cancelamento. O modelo escolhe a ferramenta pela pergunta, mas cada valor é calculado pela função Python correspondente.

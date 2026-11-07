@@ -1,6 +1,8 @@
-"""OpenRouter chat integration using Python-computed sales context."""
+"""OpenRouter chat integration with Python-executed metric tools."""
 
+import json
 import os
+from collections.abc import Callable
 
 import pandas as pd
 from openai import OpenAI
@@ -16,27 +18,75 @@ from src.metrics import (
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "openrouter/free"
+MAX_TOOL_ROUNDS = 5
+
+METRIC_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_total_revenue",
+            "description": "Retorna a receita total dos pedidos concluídos.",
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_total_orders",
+            "description": "Conta os pedidos distintos com status concluído.",
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_average_ticket",
+            "description": (
+                "Retorna o ticket médio: receita dos pedidos concluídos dividida "
+                "pelo número de pedidos distintos concluídos."
+            ),
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_unique_customers",
+            "description": "Conta clientes distintos com ao menos um pedido concluído.",
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_cancellation_rate",
+            "description": (
+                "Retorna a proporção de pedidos distintos cancelados sobre todos os "
+                "pedidos distintos, como fração entre 0 e 1."
+            ),
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
+    },
+]
 
 
-def build_sales_context(sales: pd.DataFrame) -> str:
-    """Create a compact context from metrics already calculated in Python."""
-    return "\n".join(
-        [
-            f"Receita dos pedidos concluídos: R$ {get_total_revenue(sales):.2f}",
-            f"Pedidos concluídos: {get_total_orders(sales)}",
-            f"Ticket médio dos pedidos concluídos: R$ {get_average_ticket(sales):.2f}",
-            f"Clientes com pedido concluído: {get_unique_customers(sales)}",
-            f"Taxa de cancelamento: {get_cancellation_rate(sales):.2%}",
-        ]
-    )
+def _tool_functions(sales: pd.DataFrame) -> dict[str, Callable[[], int | float]]:
+    """Bind the public tool names to calculations over the currently loaded data."""
+    return {
+        "get_total_revenue": lambda: get_total_revenue(sales),
+        "get_total_orders": lambda: get_total_orders(sales),
+        "get_average_ticket": lambda: get_average_ticket(sales),
+        "get_unique_customers": lambda: get_unique_customers(sales),
+        "get_cancellation_rate": lambda: get_cancellation_rate(sales),
+    }
 
 
 def ask_openrouter(
     question: str,
-    sales_context: str,
+    sales: pd.DataFrame,
     conversation_history: list[dict[str, str]] | None = None,
 ) -> str:
-    """Ask the configured OpenRouter model to explain the provided metrics."""
+    """Let the model choose metric tools and return a final answer."""
     api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
     if not api_key or api_key == "cole_sua_chave_aqui":
         raise ValueError(
@@ -49,10 +99,10 @@ def ask_openrouter(
             "role": "system",
             "content": (
                 "Você é o assistente do Data Pilot. Responda em português, de forma "
-                "clara e breve. Use somente os fatos numéricos do contexto calculado "
-                "pelo Python. Não invente valores nem faça novos cálculos. Se o contexto "
-                "não responder à pergunta, diga isso com clareza.\n\n"
-                f"Contexto de vendas:\n{sales_context}"
+                "clara e breve. Para responder com métricas, chame a ferramenta "
+                "correspondente. Use os resultados das ferramentas como fonte dos "
+                "números; não invente nem calcule valores por conta própria. Se nenhuma "
+                "ferramenta responder à pergunta, diga isso com clareza."
             ),
         }
     ]
@@ -60,11 +110,44 @@ def ask_openrouter(
         messages.extend(conversation_history)
     messages.append({"role": "user", "content": question})
 
-    response = client.chat.completions.create(
-        model=os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL,
-        messages=messages,
-    )
-    answer = response.choices[0].message.content
-    if not answer:
-        raise RuntimeError("O modelo retornou uma resposta vazia.")
-    return answer
+    functions = _tool_functions(sales)
+    model = os.getenv("OPENROUTER_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
+
+    for _ in range(MAX_TOOL_ROUNDS):
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=METRIC_TOOLS,
+            tool_choice="auto",
+        )
+        assistant_message = response.choices[0].message
+
+        if not assistant_message.tool_calls:
+            if not assistant_message.content:
+                raise RuntimeError("O modelo retornou uma resposta vazia.")
+            return assistant_message.content
+
+        messages.append(assistant_message.model_dump(exclude_none=True))
+        for tool_call in assistant_message.tool_calls:
+            tool_name = tool_call.function.name
+            function = functions.get(tool_name)
+            if function is None:
+                result = {"error": f"Ferramenta desconhecida: {tool_name}"}
+            else:
+                try:
+                    arguments = json.loads(tool_call.function.arguments or "{}")
+                    if arguments:
+                        raise ValueError("Esta ferramenta não recebe parâmetros.")
+                    result = {"result": function()}
+                except (json.JSONDecodeError, ValueError) as error:
+                    result = {"error": str(error)}
+
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": json.dumps(result, ensure_ascii=False),
+                }
+            )
+
+    raise RuntimeError("O modelo excedeu o limite de chamadas de ferramentas.")

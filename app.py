@@ -7,7 +7,7 @@ import plotly.express as px
 import streamlit as st
 from dotenv import load_dotenv
 
-from src.chat import ask_openrouter, build_sales_context
+from src.chat import ask_openrouter
 from src.metrics import (
     get_average_ticket,
     get_total_orders,
@@ -82,8 +82,7 @@ def render_dashboard(sales: pd.DataFrame) -> None:
 def render_chat(sales: pd.DataFrame) -> None:
     st.title("Converse com os dados")
     st.caption(
-        "Nesta etapa, o chat recebe um resumo de métricas calculadas pelo Python. "
-        "Na próxima etapa, o modelo poderá escolher ferramentas de cálculo."
+        "O modelo escolhe qual cálculo do Python usar para responder."
     )
 
     if not os.getenv("OPENROUTER_API_KEY", "").strip():
@@ -113,7 +112,7 @@ def render_chat(sales: pd.DataFrame) -> None:
             try:
                 answer = ask_openrouter(
                     question,
-                    build_sales_context(sales),
+                    sales,
                     history,
                 )
             except Exception as error:
