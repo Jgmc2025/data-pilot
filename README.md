@@ -4,19 +4,22 @@ Painel de vendas em Python com um chat em português. O Streamlit mostra indicad
 
 ## Dados
 
-O desafio usa o arquivo `sales.csv` indicado pelo Expert nas aulas. Ele ainda não está incluído neste checkout. Obtenha o arquivo pelo material das aulas e coloque-o em `data/raw/sales.csv`.
+O print da aula mostra `data/sales.csv` com colunas em português. Como o CSV original do Expert não foi anexado, o repositório inclui uma amostra sintética reproduzível com 120 vendas e 3 linhas duplicadas, baseada nos produtos, categorias, cidades, canais e status visíveis no print. Ela permite executar o projeto, mas não representa os dados originais do curso. Para gerar a amostra novamente, execute `python scripts/generate_sales_data.py`. Se obtiver o CSV original, substitua `data/sales.csv` por ele.
 
-O CSV de entrada deve ter estas colunas:
+O CSV de entrada usa estas colunas, como no print:
 
-| Coluna | Uso |
-| --- | --- |
-| `order_id` | Identifica o pedido |
-| `customer_id` | Identifica o cliente |
-| `order_date` | Data do pedido |
-| `status` | Situação do pedido |
-| `category` | Categoria do produto |
-| `quantity` | Quantidade vendida |
-| `unit_price` | Preço unitário |
+| Coluna do CSV | Campo usado no app | Uso |
+| --- | --- | --- |
+| `pedido_id` | `order_id` | Identifica o pedido |
+| `data` | `order_date` | Data do pedido |
+| `produto` | `product` | Produto vendido |
+| `categoria` | `category` | Categoria do produto |
+| `cliente_id` | `customer_id` | Identifica o cliente |
+| `cidade` | `city` | Cidade da venda |
+| `canal` | `channel` | Canal da venda |
+| `quantidade` | `quantity` | Quantidade vendida |
+| `preco_unitario` | `unit_price` | Preço unitário |
+| `status` | `status` | Situação do pedido |
 
 O preparo padroniza status concluídos como `concluido` e cancelados como `cancelado`, remove linhas duplicadas e calcula `revenue` (`quantity × unit_price`). O resultado fica em `data/processed/sales_clean.csv`, separado por `;` e com vírgula decimal. A pasta processada é gerada pelo script e não é versionada.
 
@@ -47,7 +50,7 @@ O `.env` está no `.gitignore`; não publique sua chave.
 
 ## Preparar e executar
 
-Depois de colocar `sales.csv` em `data/raw/`, gere os dados limpos e inicie o painel:
+O arquivo de exemplo já fica em `data/sales.csv`. Gere os dados limpos e inicie o painel:
 
 ```powershell
 python src/prepare_data.py
@@ -79,11 +82,14 @@ O modelo decide qual ferramenta pedir; a aplicação executa o cálculo em Pytho
 data-pilot/
 ├── app.py                  # Aplicação Streamlit
 ├── data/
-│   └── raw/README.md       # Instrução sobre o CSV de entrada
+│   ├── sales.csv           # Amostra sintética baseada no print da aula
+│   └── README.md           # Origem e regeneração da amostra
 ├── src/
 │   ├── chat.py             # Integração OpenRouter e ferramentas
 │   ├── metrics.py          # Cálculos de negócio
 │   └── prepare_data.py     # Limpeza e preparação do CSV
+├── scripts/
+│   └── generate_sales_data.py # Gera novamente a amostra sintética
 ├── .env.example            # Modelo das variáveis de ambiente
 └── requirements.txt        # Dependências Python
 ```

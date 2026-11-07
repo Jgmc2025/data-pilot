@@ -7,8 +7,20 @@ import pandas as pd
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-INPUT_PATH = ROOT_DIR / "data" / "raw" / "sales.csv"
+INPUT_PATH = ROOT_DIR / "data" / "sales.csv"
 OUTPUT_PATH = ROOT_DIR / "data" / "processed" / "sales_clean.csv"
+
+SOURCE_COLUMN_MAP = {
+    "pedido_id": "order_id",
+    "data": "order_date",
+    "produto": "product",
+    "categoria": "category",
+    "cliente_id": "customer_id",
+    "cidade": "city",
+    "canal": "channel",
+    "quantidade": "quantity",
+    "preco_unitario": "unit_price",
+}
 
 REQUIRED_COLUMNS = {
     "order_id",
@@ -61,18 +73,19 @@ def prepare_sales_data() -> pd.DataFrame:
     if not INPUT_PATH.exists():
         raise FileNotFoundError(
             f"Arquivo de entrada não encontrado: {INPUT_PATH}. "
-            "Coloque sales.csv em data/raw/."
+            "Coloque sales.csv na pasta data/."
         )
 
     sales = pd.read_csv(INPUT_PATH)
     sales.columns = sales.columns.str.strip().str.lower()
+    sales = sales.rename(columns=SOURCE_COLUMN_MAP)
     missing_columns = REQUIRED_COLUMNS - set(sales.columns)
     if missing_columns:
         missing = ", ".join(sorted(missing_columns))
         raise ValueError(
-            "O sales.csv precisa ter as colunas "
-            "order_id, customer_id, order_date, status, category, quantity "
-            "e unit_price. "
+            "O sales.csv precisa ter as colunas do exemplo do desafio "
+            "(pedido_id, data, produto, categoria, cliente_id, cidade, canal, "
+            "quantidade, preco_unitario e status). "
             f"Colunas ausentes: {missing}."
         )
 
