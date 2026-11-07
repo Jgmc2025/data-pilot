@@ -20,3 +20,13 @@ python src/prepare_data.py
 ## Etapa 2 — Métricas
 
 O módulo `src/metrics.py` calcula receita, pedidos, ticket médio e clientes únicos considerando somente pedidos concluídos. O ticket médio é a receita concluída dividida pela quantidade de pedidos concluídos. A taxa de cancelamento é a proporção de pedidos distintos cancelados sobre todos os pedidos distintos e retorna um valor entre `0` e `1`.
+
+## Etapa 3 — Painel
+
+Com os dados preparados, inicie a aplicação com:
+
+```powershell
+streamlit run app.py
+```
+
+O painel permite filtrar uma categoria e exibe receita total, pedidos concluídos, ticket médio, clientes únicos e receita mensal.
